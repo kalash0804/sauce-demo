@@ -1,8 +1,10 @@
 class Cart {
     constructor(page) {
         this.page = page;
-        this.cartLink = page.locator('[data-test ="shopping-cart-badge"]');
-        this.cartItems = page.locator('.cart_item .inventory_item_name');
+        this.cartLink = page.locator('[data-test="shopping-cart-link"]');
+        this.cartBadge = page.locator('.shopping_cart_badge');
+        this.cartItems = page.locator('.cart_item');
+        this.cartItemNames = page.locator('.cart_item .inventory_item_name');
         this.checkoutButton = page.locator('[data-test="checkout"]');
         this.firstNameInput = page.locator('[data-test="firstName"]');
         this.lastNameInput = page.locator('[data-test="lastName"]');
@@ -10,8 +12,8 @@ class Cart {
         this.continuToOverviewButton = page.locator('[data-test="continue"]');
         this.subTotalMatch = page.locator('.summary_subtotal_label');
         this.tax = page.locator('.summary_tax_label');
-        this.taxAmount = page.locator('.summary_tax_label');
-        this.finishButton = page.locator('[data-test="finish"]');
+        this.total = page.locator('.summary_total_label');
+        this.finishButtonLocator = page.locator('[data-test="finish"]');
         this.completeHeader = page.locator('.complete-header');
     }
 
@@ -20,7 +22,7 @@ class Cart {
     }
 
     async getAllCartItems() {
-        const cartItems = await this.page.locator('.cart_item .inventory_item_name').allTextContents();
+        const cartItems = await this.cartItemNames.allTextContents();
         return cartItems;
     }
     async removeAllItemsFromCart(productName) {
@@ -32,8 +34,11 @@ class Cart {
         return this.cartItems.filter({ hasText: productName });
     }
     async getCartCount() {
-        const cartCount = await this.cartLink.textContent();
-        return parseInt(cartCount) || 0;
+        const hasBadge = await this.cartBadge.count();
+        if (hasBadge === 0) {
+            return 0;
+        }
+        return parseInt(await this.cartBadge.textContent(), 10);
     }
 
     async clickCheckout() {
@@ -56,13 +61,13 @@ class Cart {
         const taxText = await this.tax.textContent();
         return parseFloat(taxText.replace('Tax: $', ''));
     }
-    async getTaxAmount() {
-        const taxAmountText = await this.taxAmount.textContent();
-        return parseFloat(taxAmountText.replace('Tax: $', ''));
+    async getTotal() {
+        const totalText = await this.total.textContent();
+        return parseFloat(totalText.replace('Total: $', ''));
     }
 
     async finishButton() {
-        await this.finishButton.click();
+        await this.finishButtonLocator.click();
     }
     async getCompleteHeader() {
         return await this.completeHeader.textContent();
